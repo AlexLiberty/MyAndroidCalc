@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="black">#FF000000</color>
+    <color name="white">#FFFFFFFF</color>
+
+    <color name="main_layout_bg">#FFC107</color>
+    <color name="main_title_fg">#009688</color>
+
+    <!-- region Calc -->
+    <color name="calc_layout_bg">#202020</color>
+    <color name="calc_tv_expression">#9B9B9B</color>
+    <color name="calc_tv_result">#FDFDFD</color>
+    <color name="calc_btn_func">#323232</color>
+    <color name="calc_btn_digit">#3B3B3B</color>
+    <color name="calc_btn_equal">#4BC0FD</color>
+    <!-- endregion  -->
+
+</resources>
