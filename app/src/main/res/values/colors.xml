@@ -15,4 +15,11 @@
     <color name="calc_btn_equal">#4BC0FD</color>
     <!-- endregion  -->
 
+    <!-- region Rates -->
+    <color name="rates_layout_bg">#BDBDBDE9</color>
+    <color name="rates_layout_tv">#E9EBEB</color>
+    <!-- endregion  -->
+
+
+
 </resources>

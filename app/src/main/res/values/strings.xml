@@ -3,7 +3,7 @@
     <string name="main_tv_title">Знайомство з Android</string>
     <string name="main_button_calc">Калькулятор</string>
 
-<!-- region calc-->
+    <!-- region calc-->
     <string name="calc_btn_0">0</string>
     <string name="calc_btn_1">1</string>
     <string name="calc_btn_2">2</string>
@@ -22,5 +22,11 @@
     <string name="calc_btn_divide">÷</string>
     <string name="calc_btn_minus">&#8722;</string>
     <string name="calc_btn_plus_minus">&#177;</string>
-<!--endregion-->
+
+    <!--endregion-->
+
+    <!-- region rates-->
+    <string name="main_btn_rates">Курс валют</string>
+
+    <!--endregion-->
 </resources>
