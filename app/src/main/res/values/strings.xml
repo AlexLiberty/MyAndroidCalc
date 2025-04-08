@@ -3,6 +3,16 @@
     <string name="main_tv_title">Знайомство з Android</string>
     <string name="main_button_calc">Калькулятор</string>
 
+    <string name="main_button_anim">Анімації</string>
+    <string name="anim_tv_title">Анімації</string>
+    <string name="anim_tv_alpha">Прозорість</string>
+    <string name="anim_tv_rotate">Поворот 360</string>
+    <string name="anim_tv_rotate2">Поворот 180</string>
+    <string name="anim_tv_scale">Маштаб</string>
+
+
+
+
     <!-- region calc-->
     <string name="calc_btn_0">0</string>
     <string name="calc_btn_1">1</string>

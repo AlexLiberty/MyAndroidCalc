@@ -2,6 +2,7 @@ package itstep.learning.myandroid;
 
 import android.os.Bundle;
 import android.util.Log;
+import android.widget.SearchView;
 import android.widget.TextView;
 
 import androidx.activity.EdgeToEdge;
@@ -9,6 +10,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
+import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -26,6 +28,7 @@ import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.stream.Collectors;
 
 import itstep.learning.myandroid.nbu.NbuRateAdapter;
 import itstep.learning.myandroid.orm.NbuRate;
@@ -47,7 +50,9 @@ public class RatesActivity extends AppCompatActivity {
         setContentView(R.layout.activity_rates);
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (v, insets) -> {
             Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
-            v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
+            Insets imeBars = insets.getInsets(WindowInsetsCompat.Type.ime());
+            v.setPadding(systemBars.left, systemBars.top, systemBars.right,
+                    Math.max(systemBars.bottom, imeBars.bottom));
             return insets;
         });
 
@@ -60,10 +65,38 @@ public class RatesActivity extends AppCompatActivity {
                 .thenRun(this::showNbuRates);
 
         rvContainer = findViewById(R.id.rates_rv_container);
-        RecyclerView.LayoutManager layoutManager = new LinearLayoutManager(this);
-        rvContainer.setLayoutManager(layoutManager);
-        nbuRateAdapter = new NbuRateAdapter(nbuRates);
-        rvContainer.setAdapter(nbuRateAdapter);
+
+        rvContainer.post(()->{
+            int w = getWindow().getDecorView().getWidth();
+            Log.d("post", "" + getWindow().getDecorView().getWidth());
+            RecyclerView.LayoutManager layoutManager = new GridLayoutManager(this, 2);
+            rvContainer.setLayoutManager(layoutManager);
+            nbuRateAdapter = new NbuRateAdapter(nbuRates);
+            rvContainer.setAdapter(nbuRateAdapter);
+        });
+
+        SearchView svFilter = findViewById(R.id.rates_sv_filter);
+        svFilter.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
+            @Override
+            public boolean onQueryTextSubmit(String s) {
+                return onFilterChange(s);
+            }
+
+            @Override
+            public boolean onQueryTextChange(String s) {
+                return onFilterChange(s);
+            }
+        });
+    }
+
+    private boolean onFilterChange(String s)
+    {
+        Log.d("onFilterChange", s);
+        nbuRateAdapter.setNbuRates(nbuRates.stream()
+                .filter(nbuRate -> nbuRate.getCc().toUpperCase().contains(s.toUpperCase()))
+                .collect(Collectors.toList())
+        );
+        return true;
     }
 
     @Override

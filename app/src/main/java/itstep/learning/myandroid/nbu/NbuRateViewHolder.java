@@ -37,7 +37,7 @@ public class NbuRateViewHolder extends RecyclerView.ViewHolder
     {
         tvTxt.setText(nbuRate.getTxt());
         tvCC.setText(nbuRate.getCc());
-        String formattedRate = String.format("1 %s = %.4f HRN\n1 HRN = %.4f %s",
+        String formattedRate = String.format("1 %s = %.4f UAH\n1 UAH = %.4f %s",
                 nbuRate.getCc(),
                 nbuRate.getRate(),
                 (1 / nbuRate.getRate()),
