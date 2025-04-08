@@ -18,14 +18,18 @@
         android:textSize="20sp"
         android:textStyle="bold" />
 
-    <TextView
+    <EditText
         android:id="@+id/rates_date"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginVertical="10dp"
         android:gravity="center"
         android:textSize="15sp"
-        android:textStyle="bold" />
+        android:textStyle="bold"
+        android:hint="Оберіть дату"
+        android:focusable="false"
+        android:clickable="true" />
+
 
 
     <androidx.recyclerview.widget.RecyclerView

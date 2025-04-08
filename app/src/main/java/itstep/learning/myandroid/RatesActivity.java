@@ -1,5 +1,6 @@
 package itstep.learning.myandroid;
 
+import android.app.DatePickerDialog;
 import android.os.Bundle;
 import android.util.Log;
 import android.widget.SearchView;
@@ -11,7 +12,6 @@ import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 import androidx.recyclerview.widget.GridLayoutManager;
-import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import org.json.JSONArray;
@@ -23,8 +23,12 @@ import java.io.InputStream;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Date;
 import java.util.List;
+import java.util.Locale;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -35,7 +39,6 @@ import itstep.learning.myandroid.orm.NbuRate;
 
 public class RatesActivity extends AppCompatActivity {
 
-    private static final String nbuRatesUrl= "https://bank.gov.ua/NBUStatService/v1/statdirectory/exchange?json";
     private ExecutorService pool;
     private final List<NbuRate> nbuRates = new ArrayList<>();
     private NbuRateAdapter nbuRateAdapter;
@@ -48,6 +51,7 @@ public class RatesActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         EdgeToEdge.enable(this);
         setContentView(R.layout.activity_rates);
+
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (v, insets) -> {
             Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
             Insets imeBars = insets.getInsets(WindowInsetsCompat.Type.ime());
@@ -57,18 +61,10 @@ public class RatesActivity extends AppCompatActivity {
         });
 
         tvDate = findViewById(R.id.rates_date);
-
-        pool = Executors.newFixedThreadPool(3);
-        CompletableFuture
-                .supplyAsync(this::loadRoutes, pool)
-                .thenAccept(this::parseNbuResponse)
-                .thenRun(this::showNbuRates);
-
         rvContainer = findViewById(R.id.rates_rv_container);
+        pool = Executors.newFixedThreadPool(3);
 
-        rvContainer.post(()->{
-            int w = getWindow().getDecorView().getWidth();
-            Log.d("post", "" + getWindow().getDecorView().getWidth());
+        rvContainer.post(() -> {
             RecyclerView.LayoutManager layoutManager = new GridLayoutManager(this, 2);
             rvContainer.setLayoutManager(layoutManager);
             nbuRateAdapter = new NbuRateAdapter(nbuRates);
@@ -87,11 +83,58 @@ public class RatesActivity extends AppCompatActivity {
                 return onFilterChange(s);
             }
         });
+
+        SimpleDateFormat dateFormat = new SimpleDateFormat("dd.MM.yyyy", Locale.ROOT);
+        Date now = new Date();
+        exchangeDate = dateFormat.format(now);
+        tvDate.setText("Курс на: " + exchangeDate);
+        loadRatesForDate(exchangeDate);
+
+        // Date picker setup
+        tvDate.setOnClickListener(v -> {
+            Calendar calendar = Calendar.getInstance();
+            DatePickerDialog datePickerDialog = new DatePickerDialog(this,
+                    (view, year, month, dayOfMonth) -> {
+                        calendar.set(year, month, dayOfMonth);
+                        String selectedDate = dateFormat.format(calendar.getTime());
+                        exchangeDate = selectedDate;
+                        tvDate.setText("Курс на: " + selectedDate);
+                        loadRatesForDate(selectedDate);
+                    },
+                    calendar.get(Calendar.YEAR),
+                    calendar.get(Calendar.MONTH),
+                    calendar.get(Calendar.DAY_OF_MONTH));
+            datePickerDialog.show();
+        });
     }
 
-    private boolean onFilterChange(String s)
-    {
-        Log.d("onFilterChange", s);
+    private void loadRatesForDate(String dateStr) {
+        String url;
+        String todayStr = new SimpleDateFormat("dd.MM.yyyy", Locale.ROOT).format(new Date());
+
+        if (dateStr.equals(todayStr)) {
+            url = "https://bank.gov.ua/NBUStatService/v1/statdirectory/exchange?json";
+        } else {
+            try {
+                Date date = new SimpleDateFormat("dd.MM.yyyy", Locale.ROOT).parse(dateStr);
+                String apiDate = new SimpleDateFormat("yyyyMMdd", Locale.ROOT).format(date);
+                url = "https://bank.gov.ua/NBUStatService/v1/statdirectory/exchange?date=" + apiDate + "&json";
+            } catch (Exception e) {
+                Log.e("loadRatesForDate", "Невірна дата: " + dateStr, e);
+                return;
+            }
+        }
+
+        CompletableFuture
+                .supplyAsync(() -> loadRoutes(url), pool)
+                .thenAccept(response -> {
+                    nbuRates.clear();
+                    parseNbuResponse(response);
+                    showNbuRates();
+                });
+    }
+
+    private boolean onFilterChange(String s) {
         nbuRateAdapter.setNbuRates(nbuRates.stream()
                 .filter(nbuRate -> nbuRate.getCc().toUpperCase().contains(s.toUpperCase()))
                 .collect(Collectors.toList())
@@ -105,10 +148,10 @@ public class RatesActivity extends AppCompatActivity {
         super.onDestroy();
     }
 
-    private String loadRoutes() {
+    private String loadRoutes(String urlStr) {
         try {
-            URL url = new URL(nbuRatesUrl);
-            InputStream urlStream =  url.openStream();
+            URL url = new URL(urlStr);
+            InputStream urlStream = url.openStream();
             ByteArrayOutputStream byteBuilder = new ByteArrayOutputStream();
             byte[] buffer = new byte[8192];
             int len;
@@ -136,16 +179,14 @@ public class RatesActivity extends AppCompatActivity {
                 nbuRates.add(NbuRate.fromJsonObject(arr.getJSONObject(i)));
             }
         } catch (JSONException ex) {
-            Log.d("parseNbuResponse", "JSONException" + ex.getMessage());
+            Log.d("parseNbuResponse", "JSONException: " + ex.getMessage());
         }
     }
 
     private void showNbuRates() {
         runOnUiThread(() -> {
-            if (exchangeDate != null) {
-                tvDate.setText("Курс на: " + exchangeDate);
-            }
-            nbuRateAdapter.notifyItemRangeChanged(0, nbuRates.size());
+            tvDate.setText("Курс на: " + exchangeDate);
+            nbuRateAdapter.notifyDataSetChanged();
         });
     }
 }
