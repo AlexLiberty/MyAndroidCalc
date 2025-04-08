@@ -18,6 +18,8 @@ public class AnimActivity extends AppCompatActivity {
 
     Animation scaleAnimation;
 
+    Animation bellAnimation;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -47,6 +49,11 @@ public class AnimActivity extends AppCompatActivity {
         scaleAnimation = AnimationUtils.loadAnimation(this, R.anim.anim_scale);
         findViewById(R.id.anim_v_scale).setOnClickListener(
                 v->v.startAnimation(scaleAnimation)
+        );
+
+        bellAnimation = AnimationUtils.loadAnimation(this, R.anim.anim_bell_rotate);
+        findViewById(R.id.anim_v_dz).setOnClickListener(
+                v -> v.startAnimation(bellAnimation)
         );
     }
 }
