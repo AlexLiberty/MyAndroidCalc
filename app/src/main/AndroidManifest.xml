@@ -15,6 +15,9 @@
         android:theme="@style/Theme.MyAndroid"
         tools:targetApi="31">
         <activity
+            android:name=".ChatActivity"
+            android:exported="false" />
+        <activity
             android:name=".AnimActivity"
             android:exported="false" />
         <activity

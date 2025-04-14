@@ -10,6 +10,14 @@
     <string name="anim_tv_rotate2">Поворот 180</string>
     <string name="anim_tv_scale">Маштаб</string>
     <string name="anim_tv_dz">Дзвоник</string>
+    <string name="main_btn_chat">Чат</string>
+    <string name="chat_tv_title">Теревеньки</string>
+    <string name="chat_tv_author">Автор:</string>
+    <string name="chat_author_hint">Ваш нік у чаті</string>
+    <string name="chat_send_hint">Надіслати повідомлення</string>
+    <string name="chat_message_hint">Введіть повідомлення</string>
+    <string name="chat_content_hint">Останнє повідомлення</string>
+
 
 
 

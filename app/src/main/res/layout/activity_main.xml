@@ -45,6 +45,13 @@
             android:layout_height="wrap_content"
             android:layout_marginBottom="25dp"
             android:text="@string/main_btn_rates" />
+
+        <Button
+            android:id="@+id/main_btn_chat"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="25dp"
+            android:text="@string/main_btn_chat" />
     </LinearLayout>
 
 
