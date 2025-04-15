@@ -19,6 +19,13 @@
     <string name="chat_content_hint">Останнє повідомлення</string>
 
 
+    <string name="chat_msg_no_name">Введіть ваш нік</string>
+    <string name="chat_msg_no_msg">Введіть повідомлення</string>
+    <string name="chat_msg_stop">Надсилання зупинене</string>
+    <string name="chat_msg_btn">Зрозуміло</string>
+
+
+
 
 
 

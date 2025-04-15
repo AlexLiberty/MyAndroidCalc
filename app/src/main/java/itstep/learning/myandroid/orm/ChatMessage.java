@@ -16,6 +16,14 @@ public class ChatMessage
     private String author;
     private String text;
     private Date moment;
+
+    public ChatMessage(){}
+
+    public ChatMessage(String author, String text) {
+        this.author = author;
+        this.text = text;
+    }
+
     public static ChatMessage fromJsonObject(JSONObject jsonObject) throws JSONException
     {
         ChatMessage chatMessage = new ChatMessage();

@@ -16,17 +16,10 @@ public class Services
         try {
             URL url = new URL( href );
             InputStream urlStream = url.openStream();   // GET-request
-            ByteArrayOutputStream byteBuilder = new ByteArrayOutputStream();
-            byte[] buffer = new byte[8192];
-            int len;
-            while( ( len = urlStream.read( buffer ) ) > 0 ) {
-                byteBuilder.write( buffer, 0, len );
-            }
-            String charsetName = StandardCharsets.UTF_8.name();
-            String data = byteBuilder.toString( charsetName );
+            String data =  readAllText(urlStream);
             urlStream.close();
             return data;
-        }
+            }
         catch( MalformedURLException ex ) {
             Log.d( "Services: fetchUrl", "MalformedURLException " + ex.getMessage() );
         }
@@ -34,5 +27,19 @@ public class Services
             Log.d( "Services: fetchUrl", "IOException " + ex.getMessage() );
         }
         return null;
+    }
+
+    public static String readAllText(InputStream inputStream) throws IOException
+    {
+        ByteArrayOutputStream byteBuilder = new ByteArrayOutputStream();
+        byte[] buffer = new byte[8192];
+        int len;
+        while( ( len = inputStream.read( buffer ) ) > 0 ) {
+            byteBuilder.write( buffer, 0, len );
+        }
+        String charsetName = StandardCharsets.UTF_8.name();
+        String data = byteBuilder.toString( charsetName );
+        byteBuilder.close();
+        return data;
     }
 }

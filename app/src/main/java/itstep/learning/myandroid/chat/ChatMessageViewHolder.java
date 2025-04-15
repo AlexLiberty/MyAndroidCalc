@@ -25,13 +25,6 @@ public class ChatMessageViewHolder extends RecyclerView.ViewHolder
     private final TextView tvText;
     private final TextView tvMoment;
 
-//    public void setChatMessage(ChatMessage chatMessage) {
-//        this.chatMessage = chatMessage;
-//        tvAuthor.setText(this.chatMessage.getAuthor());
-//        tvText.setText(this.chatMessage.getText());
-//        tvMoment.setText(momentFormat.format(chatMessage.getMoment()));
-//    }
-
     public void setChatMessage(ChatMessage chatMessage) {
         this.chatMessage = chatMessage;
         tvAuthor.setText(this.chatMessage.getAuthor());
