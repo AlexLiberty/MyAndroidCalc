@@ -1,5 +1,10 @@
 package itstep.learning.myandroid;
 
+import static android.database.sqlite.SQLiteDatabase.openOrCreateDatabase;
+
+import android.content.Context;
+import android.database.Cursor;
+import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
 import android.os.Handler;
 import android.util.Log;
@@ -9,6 +14,7 @@ import android.widget.EditText;
 import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.SwitchCompat;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
@@ -19,6 +25,8 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -49,8 +57,73 @@ public class ChatActivity extends AppCompatActivity {
     private EditText etMessage;
     private ChatMessageAdapter chatMessageAdapter;
     private final Handler handler = new Handler();
-
+    private SwitchCompat scRemember;
+    private boolean isFirstSend;
     private boolean isAuthorLocked = false;
+    private final String authorFileName = "author.name";
+    private final String appDatabase = "chat_db";
+    private void saveMessages()
+    {
+        try(
+        SQLiteDatabase db = openOrCreateDatabase(appDatabase, Context.MODE_PRIVATE, null))
+        {
+            db.execSQL("CREATE TABLE IF NOT EXISTS chat_history(" +
+                    "id ROWID, " +
+                    "author VARCHAR(128), " +
+                    "text VARCHAR(512), " +
+                    "moment DATETIME ) "
+            );
+
+            db.execSQL("DELETE FROM chat_history");
+
+            for (ChatMessage chatMessage : messages) {
+                db.execSQL("INSERT INTO chat_history VALUES(?,?,?,?)",
+                        new Object[]
+                                {
+                                       Integer.parseInt(chatMessage.getId()),
+                                        chatMessage.getAuthor(),
+                                        chatMessage.getText(),
+                                        chatMessage.getMoment()
+                                });
+            }
+        }
+        catch (Exception ex)
+        {
+            Log.e("saveMessage", ex.getClass().getName() + " " + ex.getMessage());
+        }
+    }
+
+    private void restoreMessagesAsync() {
+        CompletableFuture.runAsync(() -> {
+            try (SQLiteDatabase db = openOrCreateDatabase(appDatabase, Context.MODE_PRIVATE, null);
+                 Cursor cursor = db.rawQuery("SELECT * FROM chat_history", null)) {
+
+                if (cursor.moveToFirst()) {
+                    synchronized (messages) {
+                        do {
+                            ChatMessage message = ChatMessage.fromCursor(cursor);
+
+                            if (messages.stream().noneMatch(m -> m.getId().equals(message.getId()))) {
+                                messages.add(message);
+                            }
+
+                        } while (cursor.moveToNext());
+
+                        messages.sort(Comparator.comparing(ChatMessage::getMoment));
+
+                        runOnUiThread(() -> {
+                            chatMessageAdapter.notifyDataSetChanged();
+                            rvContent.scrollToPosition(messages.size() - 1);
+                        });
+                    }
+                }
+
+            } catch (Exception ex) {
+                Log.e("restoreMessages", ex.getClass().getName() + " " + ex.getMessage());
+            }
+        }, pool);
+    }
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -70,14 +143,20 @@ public class ChatActivity extends AppCompatActivity {
         updateChat();
 
         etAuthor = findViewById(R.id.chat_et_author);
+        etAuthor.setText(loadAuthor());
         rvContent = findViewById(R.id.chat_rv_contant);
         etMessage = findViewById(R.id.chat_et_message);
+        scRemember = findViewById(R.id.chat_switch_remember);
+        scRemember.setChecked(true);
+        isFirstSend = true;
+
         chatMessageAdapter = new ChatMessageAdapter(messages);
         LinearLayoutManager layoutManager = new LinearLayoutManager(this);
         layoutManager.setStackFromEnd(true);
         rvContent.setLayoutManager(layoutManager);
         rvContent.setAdapter(chatMessageAdapter);
         findViewById(R.id.chat_btn_send).setOnClickListener(this::onSendClick);
+        restoreMessagesAsync();
     }
 
     @Override
@@ -85,6 +164,7 @@ public class ChatActivity extends AppCompatActivity {
     {
         handler.removeMessages(0);
         pool.shutdownNow();
+        saveMessages();
         super.onDestroy();
     }
 
@@ -179,11 +259,50 @@ public class ChatActivity extends AppCompatActivity {
             isAuthorLocked = true;
         }
 
+        if(isFirstSend)
+        {
+            isFirstSend = false;
+
+            if(scRemember.isChecked())
+            {
+                saveAuthor(author);
+            }
+        }
+
         CompletableFuture.runAsync(
                 ()->sendChatMessage(new ChatMessage(author, message)),
                 pool
         );
     }
+
+    private void saveAuthor(String name)
+    {
+        try(FileOutputStream fos =
+        openFileOutput(authorFileName, Context.MODE_PRIVATE))
+        {
+            fos.write(name.getBytes(StandardCharsets.UTF_8));
+        }
+        catch (IOException ex)
+        {
+            Log.e("saveAuthor", "IOException" + ex.getMessage() );
+        }
+    }
+
+    private String loadAuthor()
+    {
+        try(FileInputStream fis =
+                    openFileInput(authorFileName))
+        {
+            return Services.readAllText(fis);
+        }
+        catch (IOException ex)
+        {
+            Log.e("loadAuthor", "IOException" + ex.getMessage() );
+        }
+
+        return "";
+    }
+
     private void sendChatMessage(ChatMessage chatMessage)
     {
         String charset = StandardCharsets.UTF_8.name();
@@ -245,7 +364,7 @@ public class ChatActivity extends AppCompatActivity {
                 .supplyAsync(()->Services.fetchUrl(chatUrl), pool)
                 .thenApply(this::parseChatResponse)
                 .thenAccept(this::processChatResponse);
-        Log.i("updateChat","updated");
+//Log.i("updateChat","updated");
         handler.postDelayed(this::updateChat, 2000);
 
     }

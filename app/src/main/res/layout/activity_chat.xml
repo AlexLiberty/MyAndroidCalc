@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/main"
     android:layout_width="match_parent"
@@ -36,7 +37,15 @@
             android:inputType="text"
             android:textColor="@color/rates_layout_bg" />
 
+        <androidx.appcompat.widget.SwitchCompat
+            android:id="@+id/chat_switch_remember"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/chat_author_remember"
+            app:switchPadding="7dp" />
+
     </LinearLayout>
+
 
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/chat_rv_contant"

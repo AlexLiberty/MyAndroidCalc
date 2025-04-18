@@ -1,5 +1,8 @@
 package itstep.learning.myandroid.orm;
 
+import android.database.Cursor;
+import android.util.Log;
+
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -12,6 +15,8 @@ public class ChatMessage
 {
     public static final SimpleDateFormat dateFormat =
             new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.ROOT );
+    public static final SimpleDateFormat sqlLiteFormat =
+            new SimpleDateFormat("EEE MMM d HH:mm:ss z yyyy", Locale.ENGLISH );
     private String id;
     private String author;
     private String text;
@@ -38,11 +43,25 @@ public class ChatMessage
                     dateFormat.parse(
                             jsonObject.getString( "moment" ) ) );
         }
-        catch( ParseException ex )
+        catch( Exception ex )
         {
-            throw new JSONException( ex.getMessage() );
+           Log.e("fromJsonObject", " " + ex.getMessage());
         }
 
+        return chatMessage;
+    }
+
+    public static ChatMessage fromCursor(Cursor cursor)
+    {
+        ChatMessage chatMessage = new ChatMessage();
+        chatMessage.setId(cursor.getString(0));
+        chatMessage.setAuthor(cursor.getString(1));
+        chatMessage.setText(cursor.getString(2));
+        try
+        {
+         chatMessage.setMoment(sqlLiteFormat.parse(cursor.getString(3)));
+        }
+        catch (Exception ignore){}
         return chatMessage;
     }
 
